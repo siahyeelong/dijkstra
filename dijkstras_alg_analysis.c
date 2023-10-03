@@ -89,6 +89,12 @@ int main()
         if(V1>=0 && V1<g.V && V2>=0 && V2<g.V && COST>0) 
         {
             // direction: V1 --COST--> V2
+            ListNode *cur = (ListNode *)malloc(sizeof(ListNode));
+            cur->vertex = V2;
+            cur->cost = COST;
+            cur->next = g.adj.list[V1];
+            g.adj.list[V1] = cur;
+
             g.adj.matrix[V1][V2] = COST;
             g.E++;
         }
@@ -97,23 +103,15 @@ int main()
         printf("Enter two vertices which are adjacent to each other, followed by the cost:\n");
     }
 
+    printf("\nvvv Result of dijstra_matrix vvv\n");
     for(start=0;start<g.V;start++){
         dijkstra_matrix(&g, start);
     }
 
-    for(i=0;i<g.V;i++)
-        for(j=0;j<g.V;j++){
-            if(g.adj.matrix[i][j]>0 && g.adj.matrix[i][j]<INFINITY){
-                ListNode *cur = (ListNode *)malloc(sizeof(ListNode));
-                cur->vertex = j;
-                cur->cost = g.adj.matrix[i][j];
-                cur->next = g.adj.list[i];
-                g.adj.list[i] = cur;
-            }
-        }
     free(g.adj.matrix);
     g.type = ADJ_LIST;
     
+    printf("\nvvv Result of dijstra_list vvv\n");
     for(start=0;start<g.V;start++){
         dijkstra_list(&g, start);
     }
@@ -122,6 +120,7 @@ int main()
 }
 
 // dijkstra's algorithms ------------------------------------
+
 void dijkstra_matrix(Graph *g, int start)
 {
     // visited[] indicates if vertex was visited (a.k.a. "S" in the lecture)

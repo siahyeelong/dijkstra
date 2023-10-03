@@ -72,6 +72,8 @@ Enter two vertices which are adjacent to each other, followed by the cost:
 Enter two vertices which are adjacent to each other, followed by the cost:
 Enter two vertices which are adjacent to each other, followed by the cost:
 
+vvv Result of dijstra_matrix vvv
+
 
 i	d	prev_vertex	visited
 0	0	-1		1
@@ -201,6 +203,8 @@ i	d	prev_vertex	visited
 7	56	1		0
 8	22	2		1
 9	0	-1		1
+
+vvv Result of dijstra_list vvv
 
 
 i	d	prev_vertex	visited
