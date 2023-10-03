@@ -25,15 +25,15 @@ typedef struct _pqlist
 
 // create graph structure
 enum GraphType {ADJ_MATRIX, ADJ_LIST};
-union GraphForm{
+typedef struct _GraphForm{
     int **matrix;
     ListNode **list;
-};
+}GraphForm;
 typedef struct _graph{
     int V;
     int E;
     enum GraphType type;
-    union GraphForm adj;
+    GraphForm adj;
 }Graph;
 
 // dijkstra's alg
@@ -57,40 +57,28 @@ int main()
 {
     struct timespec start_time, end_time; // used to clock start and end time
     Graph g;
-    int type;
     int i,j;
     int start;
-
-    // ask for MATRIX / LIST
-    printf("Enter the type of representation (1) List / (2) Matrix:\n");
-    scanf("%d", &type);
-
-    if(type==1) g.type = ADJ_LIST;
-    else if(type==2) g.type = ADJ_MATRIX;
-    else return 0;
+    g.type = ADJ_MATRIX;
     
     // ask for size of graph V
     printf("Enter the number of vertices:\n");
     scanf("%d",&g.V);
-
-clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
-
+    
     // List representation initialisation
-    if(g.type == ADJ_LIST){
-        // initialise an array of V elements (origin node)
-        g.adj.list = (ListNode **)malloc(g.V * sizeof(ListNode *));
-    }
+    // initialise an array of V elements (origin node)
+    g.adj.list = (ListNode **)malloc(g.V * sizeof(ListNode *));
     // Matrix representation initialisation
-    else {
-        // initialise matrix representation by creating a VxV matrix
-        g.adj.matrix = (int **)malloc(g.V*sizeof(int *));
-        for(i=0;i<g.V;i++)
-            g.adj.matrix[i] = (int *)malloc(g.V*sizeof(int));
-        for(i=0;i<g.V;i++)
-            for(j=0;j<g.V;j++)
-                if(i!=j) g.adj.matrix[i][j] = INFINITY; // set cost to go to every other node as -1
-                else g.adj.matrix[i][j] = 0; // set cost to go to itself as 0
+    // initialise matrix representation by creating a VxV matrix
+    g.adj.matrix = (int **)malloc(g.V*sizeof(int *));
+    for(i=0;i<g.V;i++){
+        g.adj.matrix[i] = (int *)malloc(g.V*sizeof(int));
+        g.adj.list[i] = NULL;
     }
+    for(i=0;i<g.V;i++)
+        for(j=0;j<g.V;j++)
+            if(i!=j) g.adj.matrix[i][j] = INFINITY; // set cost to go to every other node as -1
+            else g.adj.matrix[i][j] = 0; // set cost to go to itself as 0
 
     // record adjacent vertices
     g.E = 0;
@@ -101,40 +89,35 @@ clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
         if(V1>=0 && V1<g.V && V2>=0 && V2<g.V && COST>0) 
         {
             // direction: V1 --COST--> V2
-            if(g.type == ADJ_LIST){
-                ListNode *cur = (ListNode *)malloc(sizeof(ListNode));
-                cur->vertex = V2;
-                cur->cost = COST;
-                cur->next = g.adj.list[V1];
-                g.adj.list[V1] = cur;
-            }
-            else{
-                g.adj.matrix[V1][V2] = COST;
-            }
+            g.adj.matrix[V1][V2] = COST;
             g.E++;
         }
         else
             break;
         printf("Enter two vertices which are adjacent to each other, followed by the cost:\n");
     }
-    char i_hope_i_get_an_A_for_SC2001;
-    scanf("%c", &i_hope_i_get_an_A_for_SC2001); // just to flush the /0 at the end of a terminating command
 
-    printf("Enter the starting vertex:\n");
-    scanf("%d", &start);
-
-    if(g.type == ADJ_LIST){
-        printGraphList(g);
-        dijkstra_list(&g, start);
-    }
-    else{
-        printGraphMatrix(g);
+    for(start=0;start<g.V;start++){
         dijkstra_matrix(&g, start);
     }
 
-clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
-printf ("Total time = %f seconds\n", (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0 + (end_time.tv_sec  - start_time.tv_sec));
-free(g.adj.matrix);
+    for(i=0;i<g.V;i++)
+        for(j=0;j<g.V;j++){
+            if(g.adj.matrix[i][j]>0 && g.adj.matrix[i][j]<INFINITY){
+                ListNode *cur = (ListNode *)malloc(sizeof(ListNode));
+                cur->vertex = j;
+                cur->cost = g.adj.matrix[i][j];
+                cur->next = g.adj.list[i];
+                g.adj.list[i] = cur;
+            }
+        }
+    free(g.adj.matrix);
+    g.type = ADJ_LIST;
+    
+    for(start=0;start<g.V;start++){
+        dijkstra_list(&g, start);
+    }
+    free(g.adj.list);
 
 }
 
@@ -268,7 +251,7 @@ void dijkstra_list(Graph *g, int start)
 void printGraphMatrix(Graph g)
 {
     int i,j;
-    if(g.type == ADJ_LIST) {printf("Error"); return;}
+    //if(g.type == ADJ_LIST) {printf("Error"); return;}
 
     for(i=-1;i<g.V;i++){
         if(i==-1){
@@ -293,7 +276,7 @@ void printGraphList(Graph g){
     int i;
     ListNode* temp;
 
-    if(g.type == ADJ_MATRIX) {printf("Error"); return;}
+    //if(g.type == ADJ_MATRIX) {printf("Error"); return;}
 
     for(i=0;i<g.V;i++)
     {
