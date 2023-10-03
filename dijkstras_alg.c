@@ -1,4 +1,10 @@
 // written by Siah Yee Long
+
+/*
+This program will take in a graph of size V and run Dijkstra's algorithm in either a matrix representation or list representation (as defined)
+It will run Dikjstra's algorithm and output the results to check for correctness of the algorithm implemented
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

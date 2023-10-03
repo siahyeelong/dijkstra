@@ -1,4 +1,10 @@
 // written by Siah Yee Long
+
+/*
+This program will take in a graph of size V and run Dijkstra's algorithm in both a matrix representation and list representation
+It will run Dikjstra's algorithm multiple times per representation type and output the average CPU time to run the algorithm
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -37,8 +43,8 @@ typedef struct _graph{
 }Graph;
 
 // dijkstra's alg
-void dijkstra_matrix(Graph* g, int start);
-void dijkstra_list(Graph* g, int start);
+void dijkstra_matrix(Graph* g, int start, int* d);
+void dijkstra_list(Graph* g, int start, int* d);
 
 // helper functions
 void printGraphMatrix(Graph );
@@ -62,7 +68,7 @@ int main()
     g.type = ADJ_MATRIX;
     
     // ask for size of graph V
-    printf("Enter the number of vertices:\n");
+    //printf("Enter the number of vertices:\n");
     scanf("%d",&g.V);
     
     // List representation initialisation
@@ -83,7 +89,7 @@ int main()
     // record adjacent vertices
     g.E = 0;
     int V1, V2, COST;
-    printf("Enter two vertices which are adjacent to each other, followed by the cost:\n");
+    //printf("Enter two vertices which are adjacent to each other, followed by the cost:\n");
     while(scanf("%d %d %d", &V1, &V2, &COST)==3)
     {
         if(V1>=0 && V1<g.V && V2>=0 && V2<g.V && COST>0) 
@@ -100,34 +106,55 @@ int main()
         }
         else
             break;
-        printf("Enter two vertices which are adjacent to each other, followed by the cost:\n");
+        //printf("Enter two vertices which are adjacent to each other, followed by the cost:\n");
     }
 
-    printf("\nvvv Result of dijstra_matrix vvv\n");
-    for(start=0;start<g.V;start++){
-        dijkstra_matrix(&g, start);
+    int cycles = g.V; // indicates how many cycles to run to average out the runtime
+
+    int d_matrix[cycles][g.V]; // stores the d[] values after running the alg
+    float avgtime_matrix = 0; // used to compute average runtime
+    for(start=0;start<cycles;start++){ // loop through different starting nodes 
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
+        dijkstra_matrix(&g, start, d_matrix[start]);
+        clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
+        avgtime_matrix += (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0 + (end_time.tv_sec  - start_time.tv_sec);
     }
+    printf("Average runtime for matrix representation:\t%f seconds\n", avgtime_matrix /= cycles);
 
     free(g.adj.matrix);
     g.type = ADJ_LIST;
     
-    printf("\nvvv Result of dijstra_list vvv\n");
-    for(start=0;start<g.V;start++){
-        dijkstra_list(&g, start);
+    int d_list[g.V][g.V];
+    float avgtime_list;
+    for(start=0;start<cycles;start++){ // loop through different starting nodes 
+        clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
+        dijkstra_list(&g, start, d_list[start]);
+        clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
+        avgtime_list += (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0 + (end_time.tv_sec  - start_time.tv_sec);
     }
+    printf("Average runtime for list representation:\t%f seconds\n", avgtime_list /= cycles);
     free(g.adj.list);
+
+    // checking if the d[] outputs are the same for both methods of representation. prev[] doesnt matter since there can be another shortest path to the vertex via another vertex
+    for(start=0;start<g.V;start++){
+        // printf("Start: %d\n", start);
+        // printf("matrix\tlist\n");
+        for(i=0;i<g.V;i++) 
+            //printf("%d\t%d\n", d_matrix[start][i], d_list[start][i]);
+            if(d_matrix[start][i] != d_list[start][i]) printf("ERROR DETECTED\n");
+        //printf("\n");
+    }
 
 }
 
 // dijkstra's algorithms ------------------------------------
 
-void dijkstra_matrix(Graph *g, int start)
+void dijkstra_matrix(Graph *g, int start, int* d)
 {
     // visited[] indicates if vertex was visited (a.k.a. "S" in the lecture)
     // d[] indicates the current shortest distance found to this node 
     // prev_vertex[] indicates the previous vertex to reach the current node [a.k.a. "pi" in the lecture]
     int visited[g->V];
-    int d[g->V];
     int prev_vertex[g->V];
     int i;
 
@@ -172,20 +199,19 @@ void dijkstra_matrix(Graph *g, int start)
     }
 
     // print all arrays to check for correctness
-    printf("\n\ni\td\tprev_vertex\tvisited\n");
-    for(i=0;i<g->V;i++){
-        printf("%d\t%d\t%d\t\t%d\n", i, d[i], prev_vertex[i], visited[i]);
-    }
+    // printf("\n\ni\td\tprev_vertex\tvisited\n");
+    // for(i=0;i<g->V;i++){
+    //     printf("%d\t%d\t%d\t\t%d\n", i, d[i], prev_vertex[i], visited[i]);
+    // }
 
 }
 
-void dijkstra_list(Graph *g, int start)
+void dijkstra_list(Graph *g, int start, int *d)
 {
     // visited[] indicates if vertex was visited (a.k.a. "S" in the lecture)
     // d[] indicates the current shortest distance found to this node 
     // prev_vertex[] indicates the previous vertex to reach the current node [a.k.a. "pi" in the lecture]
     int visited[g->V];
-    int d[g->V];
     int prev_vertex[g->V];
     int i;
 
@@ -238,10 +264,10 @@ void dijkstra_list(Graph *g, int start)
     free(pq);
 
     // print all arrays to check for correctness
-    printf("\n\ni\td\tprev_vertex\tvisited\n");
-    for(i=0;i<g->V;i++){
-        printf("%d\t%d\t%d\t\t%d\n", i, d[i], prev_vertex[i], visited[i]);
-    }
+    // printf("\n\ni\td\tprev_vertex\tvisited\n");
+    // for(i=0;i<g->V;i++){
+    //     printf("%d\t%d\t%d\t\t%d\n", i, d[i], prev_vertex[i], visited[i]);
+    // }
 
 }
 
