@@ -16,6 +16,7 @@ int main()
     //printf("Enter size of V: \n");
     scanf("%d", &V);
     //printf("Enter the percent random disappearances: \n");
+    if(V>5000) return 0;
     scanf("%d", &D);
 
     srand(time(NULL)); // Seed the random number generator with current time

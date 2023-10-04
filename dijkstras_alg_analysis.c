@@ -108,44 +108,62 @@ int main()
             break;
         //printf("Enter two vertices which are adjacent to each other, followed by the cost:\n");
     }
+    printf("Max V: %d, Density: %f\n", g.V, (float)g.E/((g.V)*(g.V)));
 
     int cycles = 100; // indicates how many cycles to run to average out the runtime
+    int step = 200; // reduces the graph size by this amount per iteration
 
-    int d_matrix[cycles][g.V]; // stores the d[] values after running the alg
-    float avgtime_matrix = 0; // used to compute average runtime
-    for(start=0;start<cycles;start++){ // loop through different starting nodes 
-        clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
-        dijkstra_matrix(&g, start, d_matrix[start]);
-        clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
-        avgtime_matrix += (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0 + (end_time.tv_sec  - start_time.tv_sec);
-    }
-    //printf("Average runtime for matrix representation:\t%f seconds\n", avgtime_matrix /= cycles);
-    printf("%f\t", avgtime_matrix /= cycles);
+    while(g.V >= 200){ // reduce size of graph every iteration
+        int d_matrix[cycles][g.V]; // stores the d[] values after running the alg
+        float avgtime_matrix = 0; // used to compute average runtime
+        for(start=0;start<cycles;start++){ // loop through different starting nodes 
+            clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
+            dijkstra_matrix(&g, start, d_matrix[start]);
+            clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
+            avgtime_matrix += (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0 + (end_time.tv_sec  - start_time.tv_sec);
+        }
+        //printf("Average runtime for matrix representation:\t%f seconds\n", avgtime_matrix /= cycles);
+        printf("%f\t", avgtime_matrix /= cycles);
+        
+        int d_list[cycles][g.V];
+        float avgtime_list;
+        for(start=0;start<cycles;start++){ // loop through different starting nodes 
+            clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
+            dijkstra_list(&g, start, d_list[start]);
+            clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
+            avgtime_list += (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0 + (end_time.tv_sec  - start_time.tv_sec);
+        }
+        //printf("Average runtime for list representation:\t%f seconds\n", avgtime_list /= cycles);
+        printf("%f\n", avgtime_list /= cycles);
 
-    free(g.adj.matrix);
-    g.type = ADJ_LIST;
-    
-    int d_list[cycles][g.V];
-    float avgtime_list;
-    for(start=0;start<cycles;start++){ // loop through different starting nodes 
-        clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
-        dijkstra_list(&g, start, d_list[start]);
-        clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
-        avgtime_list += (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0 + (end_time.tv_sec  - start_time.tv_sec);
+        // checking if the d[] outputs are the same for both methods of representation. prev[] doesnt matter since there can be another shortest path to the vertex via another vertex
+        for(start=0;start<cycles;start++){
+            // printf("Start: %d\n", start);
+            // printf("matrix\tlist\n");
+            for(i=0;i<g.V;i++) 
+                //printf("%d\t%d\n", d_matrix[start][i], d_list[start][i]);
+                if(d_matrix[start][i] != d_list[start][i]) printf("ERROR DETECTED\n");
+            //printf("\n");
+        }
+
+        g.V -= step;
+        if(g.V>=200){
+            // convert to list representation again
+            for(i=0;i<g.V;i++) g.adj.list[i] = NULL;
+            for(i=0;i<g.V;i++){
+                for(j=0;j<g.V;j++){
+                    ListNode *cur = (ListNode *)malloc(sizeof(ListNode));
+                    cur->vertex = j;
+                    cur->cost = g.adj.matrix[i][j];
+                    cur->next = g.adj.list[i];
+                    g.adj.list[i] = cur;
+                }
+            }
+        }
     }
-    //printf("Average runtime for list representation:\t%f seconds\n", avgtime_list /= cycles);
-    printf("%f", avgtime_list /= cycles);
     free(g.adj.list);
+    free(g.adj.matrix);
 
-    // checking if the d[] outputs are the same for both methods of representation. prev[] doesnt matter since there can be another shortest path to the vertex via another vertex
-    for(start=0;start<cycles;start++){
-        // printf("Start: %d\n", start);
-        // printf("matrix\tlist\n");
-        for(i=0;i<g.V;i++) 
-            //printf("%d\t%d\n", d_matrix[start][i], d_list[start][i]);
-            if(d_matrix[start][i] != d_list[start][i]) printf("ERROR DETECTED\n");
-        //printf("\n");
-    }
 
 }
 
