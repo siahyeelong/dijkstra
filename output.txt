@@ -1,2 +1,1 @@
-Average runtime for matrix representation:	0.006824 seconds
-Average runtime for list representation:	0.017741 seconds
+0.030277	0.072952

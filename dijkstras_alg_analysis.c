@@ -109,7 +109,7 @@ int main()
         //printf("Enter two vertices which are adjacent to each other, followed by the cost:\n");
     }
 
-    int cycles = g.V; // indicates how many cycles to run to average out the runtime
+    int cycles = 100; // indicates how many cycles to run to average out the runtime
 
     int d_matrix[cycles][g.V]; // stores the d[] values after running the alg
     float avgtime_matrix = 0; // used to compute average runtime
@@ -119,12 +119,13 @@ int main()
         clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
         avgtime_matrix += (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0 + (end_time.tv_sec  - start_time.tv_sec);
     }
-    printf("Average runtime for matrix representation:\t%f seconds\n", avgtime_matrix /= cycles);
+    //printf("Average runtime for matrix representation:\t%f seconds\n", avgtime_matrix /= cycles);
+    printf("%f\t", avgtime_matrix /= cycles);
 
     free(g.adj.matrix);
     g.type = ADJ_LIST;
     
-    int d_list[g.V][g.V];
+    int d_list[cycles][g.V];
     float avgtime_list;
     for(start=0;start<cycles;start++){ // loop through different starting nodes 
         clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
@@ -132,11 +133,12 @@ int main()
         clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
         avgtime_list += (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0 + (end_time.tv_sec  - start_time.tv_sec);
     }
-    printf("Average runtime for list representation:\t%f seconds\n", avgtime_list /= cycles);
+    //printf("Average runtime for list representation:\t%f seconds\n", avgtime_list /= cycles);
+    printf("%f", avgtime_list /= cycles);
     free(g.adj.list);
 
     // checking if the d[] outputs are the same for both methods of representation. prev[] doesnt matter since there can be another shortest path to the vertex via another vertex
-    for(start=0;start<g.V;start++){
+    for(start=0;start<cycles;start++){
         // printf("Start: %d\n", start);
         // printf("matrix\tlist\n");
         for(i=0;i<g.V;i++) 

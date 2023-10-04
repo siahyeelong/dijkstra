@@ -10,10 +10,13 @@ It takes in a value V, which is the size of the graph, and generate a fully conn
 int main()
 {
     int V;
+    int D;
     int cost;
 
     //printf("Enter size of V: \n");
     scanf("%d", &V);
+    //printf("Enter the percent random disappearances: \n");
+    scanf("%d", &D);
 
     srand(time(NULL)); // Seed the random number generator with current time
 
@@ -22,8 +25,12 @@ int main()
     for(int i = 0; i < V; i++){
         for(int j = 0; j < V; j++){
             if(i != j) {
-                cost = rand() % V + 1; // Generate random value from 1 to 100
-                printf("%d %d %d\n", i, j, cost);
+                int r = rand()%100;
+                //printf("%f", 100*((float)D/100));
+                if(r > 100*((float)D/100)){
+                    cost = rand() % V + 1; // Generate random value from 1 to V
+                    printf("%d %d %d\n", i, j, cost);
+                }
             }
         }
     }
