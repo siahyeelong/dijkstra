@@ -64,14 +64,14 @@ void runResults(int V, int conn, int part);
 int main()
 {
     // get results for varied V and connectedness
-    for(int conn = 100; conn>0; conn-=10){
+    for(int conn = 100; conn>0; conn-=20){
         printf("Connectedness: %d\n", conn);
-        for(int V = 4000; V<=5000; V+=200){
+        for(int V = 4000; V<=6000; V+=200){
             runResults(V, conn, 0);
         }
     }
 
-    // get results for partitioned results
+    //get results for partitioned results
     // printf("\nRunning the partitioned part now\n");
     // for(int part = 0; part<21;part++){
     //     runResults(2000, 100, part);
