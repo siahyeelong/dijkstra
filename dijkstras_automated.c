@@ -64,9 +64,9 @@ void runResults(int V, int conn, int part);
 int main()
 {
     // get results for varied V and connectedness
-    for(int conn = 100; conn>0; conn-=20){
+    for(int conn = 5; conn>0; conn--){
         printf("Connectedness: %d\n", conn);
-        for(int V = 4000; V<=6000; V+=200){
+        for(int V = 200; V<=4000; V+=200){
             runResults(V, conn, 0);
         }
     }
@@ -415,7 +415,7 @@ void createGraph(Graph* g, int V, int conn, int part){
                     if(i != j) {
                         int r = rand()%100;
                         //printf("%f", 100*((float)D/100));
-                        if(r > 100*((float)D/100)){
+                        if(r >= 100*((float)D/100)){
                             COST = rand() % g->V + 1; // Generate random value from 1 to V
 
                             V1=i;
@@ -469,14 +469,19 @@ void runResults(int V, int conn, int part){
     
     int d_list[cycles][g.V];
     float avgtime_list;
+    int temp_count = 0;
     for(start=0;start<cycles;start++){ // loop through different starting nodes 
-        clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
-        dijkstra_list(&g, start, d_list[start]);
-        clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
-        avgtime_list += (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0 + (end_time.tv_sec  - start_time.tv_sec);
+        if(g.adj.list[start] == NULL) continue;
+        else{
+            clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
+            dijkstra_list(&g, start, d_list[start]);
+            clock_gettime(CLOCK_MONOTONIC_RAW, &end_time);
+            avgtime_list += (end_time.tv_nsec - start_time.tv_nsec) / 1000000000.0 + (end_time.tv_sec  - start_time.tv_sec);
+            temp_count++;
+        }
     }
     //printf("Average runtime for list representation:\t%f seconds\n", avgtime_list /= cycles);
-    printf("%f\n", avgtime_list /= cycles);
+    printf("%f\n", avgtime_list /= temp_count);
 
     free(g.adj.list);
     free(g.adj.matrix);
