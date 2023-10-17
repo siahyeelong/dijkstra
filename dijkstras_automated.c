@@ -24,7 +24,6 @@ typedef struct _pqlist
 {
     int *qvertex; // the current vertex
     int *qcost; // the cost required to reach this vertex from the prev vertex
-    int *qprev; // the prev vertex                                                // actually i realised after programming this shit that it's not really needed to track the prev_vertex in the priority queue lol
     int size; // size of pq
 } PQueue;
 
@@ -53,7 +52,7 @@ void pq_swap(PQueue *pq, int a, int b);
 void pq_minHeapify(PQueue *pq, int i);
 void pq_insert(PQueue *pq, int vertex, int cost, int prev);
 int pq_pop(PQueue *pq);
-void pq_updateCost(PQueue *pq, int vertex, int old_cost, int new_cost, int new_prev);
+void pq_updateCost(PQueue *pq, int vertex, int old_cost, int new_cost);
 int pq_findVertex(PQueue *pq, int vertex, int cost, int index);
 void pq_printPQ(PQueue *pq);
 void pq_checkViolation(PQueue *pq);
@@ -64,11 +63,15 @@ void runResults(int V, int conn, int part);
 int main()
 {
     // get results for varied V and connectedness
-    for(int conn = 5; conn>0; conn--){
-        printf("Connectedness: %d\n", conn);
-        for(int V = 200; V<=4000; V+=200){
-            runResults(V, conn, 0);
-        }
+    // for(int conn = 10; conn>9; conn--){
+    //     printf("Connectedness: %d\n", conn);
+    //     for(int V = 200; V<=4000; V+=200){
+    //         runResults(V, conn, 0);
+    //     }
+    // }
+
+    for(int V = 200; V<=4000; V+=200){
+            runResults(V, 2, 0);
     }
 
     //get results for partitioned results
@@ -83,9 +86,6 @@ int main()
 
 void dijkstra_matrix(Graph *g, int start, int* d)
 {
-    // visited[] indicates if vertex was visited (a.k.a. "S" in the lecture)
-    // d[] indicates the current shortest distance found to this node 
-    // prev_vertex[] indicates the previous vertex to reach the current node [a.k.a. "pi" in the lecture]
     int visited[g->V];
     int prev_vertex[g->V];
     int i;
@@ -130,19 +130,10 @@ void dijkstra_matrix(Graph *g, int start, int* d)
         count++;
     }
 
-    // print all arrays to check for correctness
-    // printf("\n\ni\td\tprev_vertex\tvisited\n");
-    // for(i=0;i<g->V;i++){
-    //     printf("%d\t%d\t%d\t\t%d\n", i, d[i], prev_vertex[i], visited[i]);
-    // }
-
 }
 
 void dijkstra_list(Graph *g, int start, int *d)
 {
-    // visited[] indicates if vertex was visited (a.k.a. "S" in the lecture)
-    // d[] indicates the current shortest distance found to this node 
-    // prev_vertex[] indicates the previous vertex to reach the current node [a.k.a. "pi" in the lecture]
     int visited[g->V];
     int prev_vertex[g->V];
     int i;
@@ -150,7 +141,6 @@ void dijkstra_list(Graph *g, int start, int *d)
     PQueue *pq = malloc(sizeof(PQueue));
     pq->qvertex = malloc(sizeof(int)*g->V);
     pq->qcost = malloc(sizeof(int)*g->V);
-    pq->qprev = malloc(sizeof(int)*g->V);
     pq->size = 0;
     ListNode *vertex = g->adj.list[start];
     int new_vertex;
@@ -185,7 +175,7 @@ void dijkstra_list(Graph *g, int start, int *d)
             if(!visited[vertex->vertex] && d[vertex->vertex] > d[new_vertex]+vertex->cost){ // if there is a new shorter path found, update the pq and d
                 int old_cost = d[vertex->vertex];
                 d[vertex->vertex] = d[new_vertex]+vertex->cost;
-                pq_updateCost(pq, vertex->vertex, old_cost,d[vertex->vertex], new_vertex); 
+                pq_updateCost(pq, vertex->vertex, old_cost,d[vertex->vertex]); 
                 prev_vertex[vertex->vertex] = new_vertex;
                 // pq_checkViolation(pq);
             }
@@ -194,12 +184,6 @@ void dijkstra_list(Graph *g, int start, int *d)
     }
 
     free(pq);
-
-    // print all arrays to check for correctness
-    // printf("\n\ni\td\tprev_vertex\tvisited\n");
-    // for(i=0;i<g->V;i++){
-    //     printf("%d\t%d\t%d\t\t%d\n", i, d[i], prev_vertex[i], visited[i]);
-    // }
 
 }
 
@@ -252,15 +236,15 @@ void pq_swap(PQueue *pq, int a, int b)
     // this function simply swaps the data of vertex at index a and vertex at index b
     int temp_vertex = pq->qvertex[a];
     int temp_cost = pq->qcost[a];
-    int temp_prev = pq->qprev[a];
+
 
     pq->qvertex[a] = pq->qvertex[b];
     pq->qcost[a] = pq->qcost[b];
-    pq->qprev[a] = pq->qprev[b];
+
 
     pq->qvertex[b] = temp_vertex;
     pq->qcost[b] = temp_cost;
-    pq->qprev[b] = temp_prev;
+
 }
 
 void pq_minHeapify(PQueue *pq, int i) 
@@ -288,7 +272,7 @@ void pq_insert(PQueue *pq, int vertex, int cost, int prev)
     int i = pq->size++;
     pq->qvertex[i] = vertex;
     pq->qcost[i] = cost;
-    pq->qprev[i] = prev;
+
 
     while (i != 0 && pq->qcost[i] < pq->qcost[(i - 1) / 2]) {
         pq_swap(pq, i, (i - 1) / 2);
@@ -307,14 +291,13 @@ int pq_pop(PQueue *pq)
 
     pq->qvertex[0] = pq->qvertex[pq->size-1];
     pq->qcost[0] = pq->qcost[pq->size-1];
-    pq->qprev[0] = pq->qprev[pq->size-1];
     pq->size--;
     pq_minHeapify(pq, 0);
 
     return smallest;
 }
 
-void pq_updateCost(PQueue *pq, int vertex, int old_cost, int new_cost, int new_prev)
+void pq_updateCost(PQueue *pq, int vertex, int old_cost, int new_cost)
 {
     // this function will search for the vertex and update its cost, then fix it
 
@@ -328,7 +311,6 @@ void pq_updateCost(PQueue *pq, int vertex, int old_cost, int new_cost, int new_p
 
     // update the new cost and prev
     pq->qcost[index] = new_cost;
-    pq->qprev[index] = new_prev;
 
     // float the vertex up due to the new cost potentially being smaller than the parent
     while (index != 0 && pq->qcost[index] < pq->qcost[(index - 1) / 2]) {
